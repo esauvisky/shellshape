@@ -473,7 +473,9 @@ module Extension {
 
 			// Connect callbacks to all workspaces
 			self._init_workspaces = function() {
-				Util.connect_and_track(self, global.display, 'notify::n-workspaces', function() { self.update_workspaces(workspacesChangedMode); });
+				Util.connect_and_track(self, global.workspace_manager, 'notify::n-workspaces', () => {
+					self.update_workspaces(workspacesChangedMode);
+				});
 				self.update_workspaces(initializeWorkspacesMode);
 				var display = self.current_display();
 				//TODO: need to disconnect and reconnect when old display changes
