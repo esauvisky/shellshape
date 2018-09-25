@@ -52,15 +52,19 @@ interface MetaWindow extends GObject {
 	get_wm_class(): string
 }
 
-interface Screen extends GObject {
-	get_workspace_by_index(n:number):MetaWorkspace
-	get_active_workspace_index():number
-	connect_after:Function
+interface Display extends GObject {
 	get_display():any
-	get_n_workspaces():number
 	get_n_monitors():number
 	get_primary_monitor():number
 	get_monitor_geometry(idx:number):any
+	get_grab_op():number
+	get_current_time_roundtrip():number
+}
+
+interface WorkspaceManager extends GObject {
+	get_active_workspace_index():number
+	get_n_workspaces():number
+	get_workspace_by_index(n:number):MetaWorkspace
 }
 
 interface GObjectSignal {
@@ -80,13 +84,18 @@ interface BoundSignal {
 interface Global {
 	get_current_time(): number
 	create_app_launch_context(...args: any[]):any
-	screen: Screen
+	display: Display
+	workspace_manager: WorkspaceManager
 	log: Function
-	display: any
+}
+
+interface Meta {
+	MonitorManager: any
 }
 
 declare var global: Global;
 declare var Lang: Lang;
+declare var Meta: Meta;
 
 interface Void_Varargs {
 	(...args: any[]):void

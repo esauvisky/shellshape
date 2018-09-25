@@ -170,10 +170,10 @@ module Indicator {
 			this.actor.add_actor(this.icon);
 			this.actor.connect('scroll-event', Lang.bind(this, this._scroll_event));
 
-			this._workspaceChanged(null, null, global.screen.get_active_workspace_index());
+			this._workspaceChanged(null, null, global.workspace_manager.get_active_workspace_index());
 
 			Util.connect_and_track(this,
-				global.screen,
+				global.workspace_manager,
 				'workspace-switched',
 				Lang.bind(this,this._workspaceChanged),
 				true // use connect-after

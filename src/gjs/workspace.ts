@@ -204,7 +204,7 @@ module Workspace {
 			const self = this;
 			var _handler = function(idle) {
 				return function() {
-					var grab_op = global.screen.get_display().get_grab_op();
+					var grab_op = global.display.get_grab_op();
 					if(relevant_grabs.indexOf(grab_op) != -1) {
 						//wait for the operation to end...
 						if(idle || !change.pending) {

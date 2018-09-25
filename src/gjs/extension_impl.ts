@@ -223,19 +223,19 @@ module Extension {
 			// Returns a Workspace (shellshape/workspace.js) representing the
 			// current workspace.
 			self.current_workspace = function current_workspace() {
-				return self.get_workspace_at(global.screen.get_active_workspace_index());
+				return self.get_workspace_at(global.workspace_manager.get_active_workspace_index());
 			};
 
 			// Return a gnome-shell meta-workspace representing the current workspace.
 			self.mutter_workspace = function current_meta_workspace(idx?:number) {
-				if (arguments.length === 0) idx = global.screen.get_active_workspace_index();
+				if (arguments.length === 0) idx = global.workspace_manager.get_active_workspace_index();
 				self.log.debug("getting workspace #"+idx);
 				
 				if (Logging.PARANOID) {
-					if (idx == null || idx > global.screen.get_n_workspaces()) throw new Error("no such workspace: " + idx);
+					if (idx == null || idx > global.workspace_manager.get_n_workspaces()) throw new Error("no such workspace: " + idx);
 				}
 
-				return global.screen.get_workspace_by_index(idx);
+				return global.workspace_manager.get_workspace_by_index(idx);
 			};
 
 			// Returns the Layout (shellshape/tiling.js,coffee) tied to the current
@@ -246,7 +246,7 @@ module Extension {
 
 			// Perform an action on each workspace
 			self.on_all_workspaces = function(cb) {
-				var num_workspaces = global.screen.get_n_workspaces();
+				var num_workspaces = global.workspace_manager.get_n_workspaces();
 				for (var i=0; i< num_workspaces; i++) {
 					cb(self.get_workspace_at(i));
 				}
@@ -254,7 +254,7 @@ module Extension {
 
 			// Returns the gnome-shell meta-display that is currently active.
 			self.current_display = function current_display() {
-				return global.screen.get_display();
+				return global.display;
 			};
 
 			// Returns the shellshape Window corresponding with the currently
@@ -272,9 +272,9 @@ module Extension {
 			// window, then that window is moved to the destination workspace.
 			// Called directly upon keypress.  Bound in _init_keybindings().
 			self.switch_workspace = function switch_workspace(offset, window) {
-				var activate_index = global.screen.get_active_workspace_index()
+				var activate_index = global.workspace_manager.get_active_workspace_index()
 				var new_index = activate_index + offset;
-				if(new_index < 0 || new_index >= global.screen.get_n_workspaces()) {
+				if(new_index < 0 || new_index >= global.workspace_manager.get_n_workspaces()) {
 					self.log.debug("No such workspace; ignoring");
 					return;
 				}
@@ -418,7 +418,7 @@ module Extension {
 
 				// modified from gnome-shell/js/ui/workspacesView.js
 				var old_n = self.workspaces.length;
-				var new_n = global.screen.get_n_workspaces();
+				var new_n = global.workspace_manager.get_n_workspaces();
 
 				if (new_n > old_n) {
 					// Assume workspaces are only added at the end
@@ -473,7 +473,7 @@ module Extension {
 
 			// Connect callbacks to all workspaces
 			self._init_workspaces = function() {
-				Util.connect_and_track(self, global.screen, 'notify::n-workspaces', function() { self.update_workspaces(workspacesChangedMode); });
+				Util.connect_and_track(self, global.display, 'notify::n-workspaces', function() { self.update_workspaces(workspacesChangedMode); });
 				self.update_workspaces(initializeWorkspacesMode);
 				var display = self.current_display();
 				//TODO: need to disconnect and reconnect when old display changes
@@ -613,9 +613,9 @@ module Extension {
 				}
 
 				update() {
-					this.count = global.screen.get_n_monitors();
-					this.idx = global.screen.get_primary_monitor();
-					this.bounds.update(global.screen.get_workspace_by_index(0).get_work_area_for_monitor(this.idx));
+					this.count = global.display.get_n_monitors();
+					this.idx = global.display.get_primary_monitor();
+					this.bounds.update(global.workspace_manager.get_workspace_by_index(0).get_work_area_for_monitor(this.idx));
 				};
 			};
 
@@ -678,17 +678,17 @@ module Extension {
 				};
 
 				// do a full update when monitors changed (dimensions, num_screens, main_screen_idx, relayout)
-				Util.connect_and_track(self, global.screen, 'monitors-changed', update_monitor);
+				Util.connect_and_track(self, Main.layoutManager, 'monitors-changed', update_monitor);
 
 				// sanity check workspaces when switching to them (TODO: remove this if it never fails)
-				Util.connect_and_track(self, global.screen, 'workspace-switched', workspace_switched);
+				Util.connect_and_track(self, global.workspace_manager, 'workspace-switched', workspace_switched);
 
 				// window-entered-monitor and window-left-monitor seem really twitchy - they
 				// can fire a handful of times in a single atomic window placement.
 				// So we just use the hint to check window validity, rather than assuming
 				// it's actually a new or removed window.
-				Util.connect_and_track(self, global.screen, 'window-entered-monitor', update_window_workspace);
-				Util.connect_and_track(self, global.screen, 'window-left-monitor', update_window_workspace);
+				Util.connect_and_track(self, Meta.MonitorManager.get(), 'window-entered-monitor', update_window_workspace);
+				Util.connect_and_track(self, Meta.MonitorManager.get(), 'window-left-monitor', update_window_workspace);
 			};
 
 			// Unbinds keybindings
